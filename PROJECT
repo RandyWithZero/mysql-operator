@@ -1,0 +1,11 @@
+domain: tongtech.com
+layout: go.kubebuilder.io/v3
+projectName: mysql-operator
+repo: mysql-operator
+resources:
+- api:
+    crdVersion: v1
+  group: mysql
+  kind: MysqlHACluster
+  version: v1
+version: 3-alpha

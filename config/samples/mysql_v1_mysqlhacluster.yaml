@@ -1,0 +1,7 @@
+apiVersion: mysql.tongtech.com/v1
+kind: MysqlHACluster
+metadata:
+  name: mysqlhacluster-sample
+spec:
+  # Add fields here
+  foo: bar

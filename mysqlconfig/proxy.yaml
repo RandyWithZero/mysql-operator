@@ -1,0 +1,25 @@
+mysqlProxy:
+  #运行mysql-proxy用户
+  user: root
+  #主从mysql共有的用户
+  adminUsername: root
+  #主从mysql共有的用户密码
+  adminPassword: root
+  #mysql-proxy运行ip和端口，不加端口，默认4040
+  proxyAddress: "192.168.179.142:4040"
+  #指定管理脚本
+  adminLuaScript: /script/admin.lua
+  #指定后端主master写入数据
+  proxyBackendAddresses: ["192.168.103.207:3307"]
+  #指定后端从slave读取数据
+  proxyReadOnlyBackendAddresses: ["192.168.103.208:3307"]
+  #指定读写分离配置文件位置
+  proxyLuaScript: /script/rw-splitting.lua
+  #日志位置
+  logFile: /logs/mysql-proxy.log
+  #定义log日志级别，由高到低分别有(error|warning|info|message|debug)
+  logLevel: debug
+  #以守护进程方式运行
+  daemon: true
+  #mysql-proxy崩溃时，尝试重启
+  keepalive: true

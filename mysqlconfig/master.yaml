@@ -1,0 +1,10 @@
+mysqld:
+  #从库会基于此log-bin来做复制
+  log-bin: /var/log/mysql/mysql-bin.log
+  #用于读写分离的具体数据库，如a,b库
+  binlogDoDb: ["a","b"]
+  #不用于读写分离的具体数据库
+  binlogIgnoreDb: ["mysql","information_schema"]
+  #选择row模式
+  binlogFormat: ROW
+  serverId: 1
