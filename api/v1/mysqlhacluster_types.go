@@ -25,7 +25,7 @@ type MysqlPhase string
 
 const (
 	Success     MysqlPhase = "SUCCESS"
-	Available   MysqlPhase = "AVAILABLE"
+	Unhealthy   MysqlPhase = "UNHEALTHY"
 	Unavailable MysqlPhase = "UNAVAILABLE"
 	Pending     MysqlPhase = "PENDING"
 	Fail        MysqlPhase = "FAIL"

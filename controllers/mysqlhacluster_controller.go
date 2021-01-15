@@ -17,18 +17,21 @@ limitations under the License.
 package controllers
 
 import (
+	"bytes"
 	"context"
 	"github.com/go-logr/logr"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"math/rand"
 	mysqlv1 "mysql-operator/api/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"time"
 )
 
 type role string
@@ -37,7 +40,17 @@ const (
 	master   = "Master"
 	follower = "Follower"
 	backup   = "backup"
+	char     = "abcdefghijklmnopqrstuvwxyz0123456789"
 )
+
+func RandChar(size int) string {
+	rand.NewSource(time.Now().UnixNano()) // 产生随机种子
+	var s bytes.Buffer
+	for i := 0; i < size; i++ {
+		s.WriteByte(char[rand.Int63()%int64(len(char))])
+	}
+	return s.String()
+}
 
 // MysqlHAClusterReconciler reconciles a MysqlHACluster object
 type MysqlHAClusterReconciler struct {
@@ -110,10 +123,21 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 			NodeName: masterPod.Spec.NodeName,
 		}
 	}
-
+	//更新状态
+	if masterPod != nil {
+		if status.BackUpExpect == status.BackUpReady && status.FollowerExpect == status.FollowerReady {
+			status.Phase = mysqlv1.Success
+		} else {
+			status.Phase = mysqlv1.Unhealthy
+		}
+	} else {
+		status.Phase = mysqlv1.Fail
+	}
+	if err := r.Status().Update(ctx, &mysqlHaCluster); err != nil {
+		return ctrl.Result{}, err
+	}
 	var pod *v1.Pod = nil
 	if masterPod == nil {
-		status.Phase = mysqlv1.Unavailable
 		if backupPod != nil {
 			//todo 变更backup to master
 			backupPod.Annotations["role"] = master
@@ -124,7 +148,6 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		} else {
 			pod = makeServerPod(&mysqlHaCluster, master)
 		}
-
 	}
 	if backUpQuantity != mysqlHaCluster.Spec.BackUpQuantity {
 		if followerPod != nil {
@@ -137,14 +160,11 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		} else {
 			pod = makeServerPod(&mysqlHaCluster, backup)
 		}
-
 	}
 	if followerQuantity != mysqlHaCluster.Spec.FollowerQuantity {
 		pod = makeServerPod(&mysqlHaCluster, follower)
 	}
-	if err := r.Status().Update(ctx, &mysqlHaCluster); err != nil {
-		return ctrl.Result{}, err
-	}
+
 	//create
 	if pod != nil {
 		log.Info("创建关联pod:" + pod.Name)
@@ -161,7 +181,7 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 func makeServerPod(mysql *mysqlv1.MysqlHACluster, role string) *v1.Pod {
 	return &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        mysql.Spec.MysqlServer.ObjectMeta.Name,
+			Name:        mysql.Name + "-" + RandChar(6),
 			Namespace:   mysql.Namespace,
 			Annotations: map[string]string{"role": role},
 		},
