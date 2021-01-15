@@ -3,5 +3,16 @@ kind: MysqlHACluster
 metadata:
   name: mysqlhacluster-sample
 spec:
-  # Add fields here
-  foo: bar
+  backUpQuantity: 1
+  followerQuantity: 5
+  selector:
+    app: mysqlCluster
+  mysqlServer:
+    metadata:
+      name: server
+      labels:
+        app: mysqlCluster
+    spec:
+       containers:
+         - name: nginx
+           image: 168.1.9.1/pub/nginx:1.19.1
