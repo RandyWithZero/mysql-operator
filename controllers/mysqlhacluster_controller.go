@@ -19,6 +19,8 @@ package controllers
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/go-logr/logr"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -88,6 +90,8 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		log.Error(err, "无法获取MysqlHACluster联资源对象"+clusterName+"关联匹配的容器组错误")
 		return ctrl.Result{}, err
 	}
+	marshal, _ := json.Marshal(podList)
+	fmt.Println(string(marshal))
 	var backUpQuantity uint = 0
 	var followerQuantity uint = 0
 	var masterPod, followerPod, backupPod *v1.Pod = nil, nil, nil
@@ -184,6 +188,7 @@ func makeServerPod(mysql *mysqlv1.MysqlHACluster, role string) *v1.Pod {
 			Name:        mysql.Name + "-" + RandChar(6),
 			Namespace:   mysql.Namespace,
 			Annotations: map[string]string{"role": role},
+			Labels:      mysql.Spec.MysqlServer.Labels,
 		},
 		Spec: *mysql.Spec.MysqlServer.Spec.DeepCopy(),
 	}
