@@ -39,7 +39,7 @@ type MysqlHAClusterSpec struct {
 	// followerQuantity: the quantity of mysql follower server
 	FollowerQuantity uint `json:"followerQuantity,omitempty"`
 	// A label query over pods that are managed by the mysql cluster
-	Selector *client.MatchingLabelsSelector `json:"selectorLabels",protobuf:"bytes,1,opt,name=Selector"`
+	Selector *client.MatchingLabelsSelector `json:"selector,omitempty"`
 	// MysqlClientImage: image of mysql client
 	MysqlClientImage string `json:"mysqlClientImage,omitempty"`
 	// MysqlServer: mysql server pod template
