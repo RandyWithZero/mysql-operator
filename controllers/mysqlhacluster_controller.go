@@ -161,7 +161,7 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 func makeServerPod(mysql *mysqlv1.MysqlHACluster, role string) *v1.Pod {
 	return &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        mysql.Spec.MysqlServer.Name,
+			Name:        mysql.Spec.MysqlServer.ObjectMeta.Name,
 			Namespace:   mysql.Namespace,
 			Annotations: map[string]string{"role": role},
 		},
