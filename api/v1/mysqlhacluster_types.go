@@ -25,11 +25,11 @@ import (
 type MysqlPhase string
 
 const (
-	Success   MysqlPhase = "SUCCESS"
-	Available MysqlPhase = "AVAILABLE"
+	Success     MysqlPhase = "SUCCESS"
+	Available   MysqlPhase = "AVAILABLE"
 	Unavailable MysqlPhase = "UNAVAILABLE"
-	Pending   MysqlPhase = "PENDING"
-	Fail      MysqlPhase = "FAIL"
+	Pending     MysqlPhase = "PENDING"
+	Fail        MysqlPhase = "FAIL"
 )
 
 // MysqlHAClusterSpec defines the desired state of MysqlHACluster
@@ -39,7 +39,7 @@ type MysqlHAClusterSpec struct {
 	// followerQuantity: the quantity of mysql follower server
 	FollowerQuantity uint `json:"followerQuantity,omitempty"`
 	// A label query over pods that are managed by the mysql cluster
-	Selector *client.MatchingLabelsSelector`json:"selectorLabels",protobuf:"bytes,1,opt,name=Selector"`
+	Selector *client.MatchingLabelsSelector `json:"selectorLabels",protobuf:"bytes,1,opt,name=Selector"`
 	// MysqlClientImage: image of mysql client
 	MysqlClientImage string `json:"mysqlClientImage,omitempty"`
 	// MysqlServer: mysql server pod template
@@ -78,6 +78,12 @@ type MysqlHAClusterStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:JSONPath=".status.phase",name=status,type=string
+//+kubebuilder:printcolumn:JSONPath=".status.backUpExpect",name=backUpExpect,type=integer
+//+kubebuilder:printcolumn:JSONPath=".status.backUpReady",name=backUpReady,type=integer
+//+kubebuilder:printcolumn:JSONPath=".status.followerExpect",name=followerExpect,type=integer
+//+kubebuilder:printcolumn:JSONPath=".status.followerReady",name=followerReady,type=integer
+//+kubebuilder:printcolumn:JSONPath=".status.master.podIp",name=masterIp,type=string
 
 // MysqlHACluster is the Schema for the mysqlhaclusters API
 type MysqlHACluster struct {
