@@ -77,23 +77,23 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 	var backUpQuantity uint = 0
 	var followerQuantity uint = 0
-    var masterPod,followerPod,backupPod *v1.Pod = nil,nil,nil
+	var masterPod, followerPod, backupPod *v1.Pod = nil, nil, nil
 	for _, pod := range podList.Items {
-		if master == pod.Annotations["role"] && (v1.PodRunning == pod.Status.Phase||v1.PodPending == pod.Status.Phase) {
+		if master == pod.Annotations["role"] && (v1.PodRunning == pod.Status.Phase || v1.PodPending == pod.Status.Phase) {
 			if masterPod == nil {
-				masterPod=&pod
+				masterPod = &pod
 			}
 		}
-		if follower == pod.Annotations["role"] && (v1.PodRunning == pod.Status.Phase||v1.PodPending == pod.Status.Phase) {
+		if follower == pod.Annotations["role"] && (v1.PodRunning == pod.Status.Phase || v1.PodPending == pod.Status.Phase) {
 			followerQuantity++
 			if followerPod == nil {
-				followerPod=&pod
+				followerPod = &pod
 			}
 		}
-		if backup == pod.Annotations["role"] && (v1.PodRunning == pod.Status.Phase||v1.PodPending == pod.Status.Phase) {
+		if backup == pod.Annotations["role"] && (v1.PodRunning == pod.Status.Phase || v1.PodPending == pod.Status.Phase) {
 			backUpQuantity++
 			if backupPod == nil {
-				backupPod=&pod
+				backupPod = &pod
 			}
 		}
 	}
@@ -102,15 +102,23 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	status.FollowerExpect = mysqlHaCluster.Spec.FollowerQuantity
 	status.BackUpReady = backUpQuantity
 	status.FollowerReady = followerQuantity
+	if masterPod != nil {
+		status.Master = mysqlv1.MysqlHAClusterMasterInfo{
+			NodeIp:   masterPod.Status.HostIP,
+			PodIp:    masterPod.Status.PodIP,
+			PodName:  masterPod.Name,
+			NodeName: masterPod.Spec.NodeName,
+		}
+	}
 
 	var pod *v1.Pod = nil
 	if masterPod == nil {
 		status.Phase = mysqlv1.Unavailable
 		if backupPod != nil {
 			//todo 变更backup to master
-			backupPod.Annotations["role"]=master
-			log.Info("变更关联pod角色:backup to master" )
-			if err := r.Update(ctx, backupPod);err!=nil{
+			backupPod.Annotations["role"] = master
+			log.Info("变更关联pod角色:backup to master")
+			if err := r.Update(ctx, backupPod); err != nil {
 				return ctrl.Result{}, err
 			}
 		} else {
@@ -121,9 +129,9 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	if backUpQuantity != mysqlHaCluster.Spec.BackUpQuantity {
 		if followerPod != nil {
 			//todo  变更follower to backUp
-			followerPod.Annotations["role"]=backup
-			log.Info("变更关联pod角色:follower to backUp" )
-			if err := r.Update(ctx, followerPod);err!=nil{
+			followerPod.Annotations["role"] = backup
+			log.Info("变更关联pod角色:follower to backUp")
+			if err := r.Update(ctx, followerPod); err != nil {
 				return ctrl.Result{}, err
 			}
 		} else {
@@ -137,7 +145,7 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	if err := r.Status().Update(ctx, &mysqlHaCluster); err != nil {
 		return ctrl.Result{}, err
 	}
-    //create
+	//create
 	if pod != nil {
 		log.Info("创建关联pod:" + pod.Name)
 		if err := controllerutil.SetControllerReference(&mysqlHaCluster, pod, r.Scheme); err != nil {
@@ -153,13 +161,14 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 func makeServerPod(mysql *mysqlv1.MysqlHACluster, role string) *v1.Pod {
 	return &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        mysql.Name + "-" + mysql.Spec.MysqlServer.Name + "",
+			Name:        mysql.Name + "-" + mysql.Spec.MysqlServer.Name,
 			Namespace:   mysql.Namespace,
 			Annotations: map[string]string{"role": role},
 		},
 		Spec: *mysql.Spec.MysqlServer.Spec.DeepCopy(),
 	}
 }
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *MysqlHAClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c := ctrl.NewControllerManagedBy(mgr)
