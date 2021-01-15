@@ -23,13 +23,12 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	mysqlv1 "mysql-operator/api/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	mysqlv1 "mysql-operator/api/v1"
 )
 
 type role string
@@ -71,7 +70,8 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	clusterName := mysqlHaCluster.Name + "[" + mysqlHaCluster.Namespace + "]"
 	log.Info("即将协调MysqlHACluster资源对象" + clusterName)
 	var podList v1.PodList
-	if err := r.List(ctx, &podList, client.InNamespace(req.Namespace), mysqlHaCluster.Spec.Selector); err != nil {
+	selector := &mysqlHaCluster.Spec.Selector
+	if err := r.List(ctx, &podList, client.InNamespace(req.Namespace), (*client.MatchingLabels)(selector)); err != nil {
 		log.Error(err, "无法获取MysqlHACluster联资源对象"+clusterName+"关联匹配的容器组错误")
 		return ctrl.Result{}, err
 	}
@@ -172,10 +172,10 @@ func makeServerPod(mysql *mysqlv1.MysqlHACluster, role string) *v1.Pod {
 // SetupWithManager sets up the controller with the Manager.
 func (r *MysqlHAClusterReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	c := ctrl.NewControllerManagedBy(mgr)
-	c.Watches(&source.Kind{Type: &v1.Pod{}}, &handler.EnqueueRequestForOwner{
+	watches := c.Watches(&source.Kind{Type: &v1.Pod{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &mysqlv1.MysqlHACluster{},
 	})
-	return c.For(&mysqlv1.MysqlHACluster{}).
+	return watches.For(&mysqlv1.MysqlHACluster{}).
 		Complete(r)
 }

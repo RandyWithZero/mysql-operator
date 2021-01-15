@@ -19,7 +19,6 @@ package v1
 import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type MysqlPhase string
@@ -39,7 +38,7 @@ type MysqlHAClusterSpec struct {
 	// followerQuantity: the quantity of mysql follower server
 	FollowerQuantity uint `json:"followerQuantity,omitempty"`
 	// A label query over pods that are managed by the mysql cluster
-	Selector *client.MatchingLabelsSelector `json:"selector,omitempty"`
+	Selector map[string]string `json:"selector,omitempty" protobuf:"bytes,1,rep,name=selector"`
 	// MysqlClientImage: image of mysql client
 	MysqlClientImage string `json:"mysqlClientImage,omitempty"`
 	// MysqlServer: mysql server pod template
