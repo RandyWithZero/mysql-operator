@@ -83,7 +83,8 @@ type MysqlHAClusterStatus struct {
 //+kubebuilder:printcolumn:JSONPath=".status.followerExpect",name=followerExpect,type=integer
 //+kubebuilder:printcolumn:JSONPath=".status.followerReady",name=followerReady,type=integer
 //+kubebuilder:printcolumn:JSONPath=".status.master.podIp",name=masterIp,type=string
-
+//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+//+kubebuilder:printcolumn:name="Name",type="string",JSONPath=".metadata.name"
 // MysqlHACluster is the Schema for the mysqlhaclusters API
 type MysqlHACluster struct {
 	metav1.TypeMeta   `json:",inline"`
