@@ -24,7 +24,6 @@ import (
 	"github.com/go-logr/logr"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"math/rand"
 	mysqlv1 "mysql-operator/api/v1"
@@ -183,14 +182,14 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 }
 
 func makeServerPod(mysql *mysqlv1.MysqlHACluster, role string) *v1.Pod {
+	pod := mysql.Spec.MysqlServer
+	meta := *pod.Template.ObjectMeta.DeepCopy()
+	meta.Namespace = mysql.Namespace
+	meta.Annotations = map[string]string{"role": role}
+	meta.Name = mysql.Name + "-" + meta.Name + "-" + RandChar(6)
 	return &v1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        mysql.Name + "-" + RandChar(6),
-			Namespace:   mysql.Namespace,
-			Annotations: map[string]string{"role": role},
-			Labels:      mysql.Spec.MysqlServer.Labels,
-		},
-		Spec: *mysql.Spec.MysqlServer.Spec.DeepCopy(),
+		ObjectMeta: meta,
+		Spec:       *mysql.Spec.MysqlServer.Template.Spec.DeepCopy(),
 	}
 }
 
