@@ -182,15 +182,20 @@ func (r *MysqlHAClusterReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 }
 
 func makeServerPod(mysql *mysqlv1.MysqlHACluster, role string) *v1.Pod {
+	marshal, _ := json.Marshal(mysql)
+	fmt.Println("Instance=================" + string(marshal))
 	pod := mysql.Spec.MysqlServer
-	meta := *pod.Template.ObjectMeta.DeepCopy()
+	meta := *pod.ObjectMeta.DeepCopy()
 	meta.Namespace = mysql.Namespace
 	meta.Annotations = map[string]string{"role": role}
 	meta.Name = mysql.Name + "-" + meta.Name + "-" + RandChar(6)
-	return &v1.Pod{
+	v1pod := &v1.Pod{
 		ObjectMeta: meta,
 		Spec:       *mysql.Spec.MysqlServer.Template.Spec.DeepCopy(),
 	}
+	v1p, _ := json.Marshal(v1pod)
+	fmt.Println("Instance=================" + string(v1p))
+	return v1pod
 }
 
 // SetupWithManager sets up the controller with the Manager.
