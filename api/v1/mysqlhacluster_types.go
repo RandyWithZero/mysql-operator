@@ -42,7 +42,7 @@ type MysqlHAClusterSpec struct {
 	// MysqlClientImage: image of mysql client
 	MysqlClientImage string `json:"mysqlClientImage,omitempty"`
 	// MysqlServer: mysql server pod template
-	MysqlServer v1.PodTemplate `json:"mysqlServer" protobuf:"bytes,6,opt,name=mysqlServer"`
+	MysqlServer v1.PodTemplateSpec `json:"mysqlServer" protobuf:"bytes,6,opt,name=mysqlServer"`
 	// MysqlProxy: mysql proxy pod template
 	//MysqlProxy v1.PodTemplateSpec `json:"mysqlProxy" protobuf:"bytes,6,opt,name=mysqlProxy"`
 	// UserName: mysql connect username

@@ -191,10 +191,10 @@ func makeServerPod(mysql *mysqlv1.MysqlHACluster, role string) *v1.Pod {
 	meta.Name = mysql.Name + "-" + meta.Name + "-" + RandChar(6)
 	v1pod := &v1.Pod{
 		ObjectMeta: meta,
-		Spec:       *mysql.Spec.MysqlServer.Template.Spec.DeepCopy(),
+		Spec:       *mysql.Spec.MysqlServer.Spec.DeepCopy(),
 	}
 	v1p, _ := json.Marshal(v1pod)
-	fmt.Println("Instance=================" + string(v1p))
+	fmt.Println("Pod=================" + string(v1p))
 	return v1pod
 }
 
